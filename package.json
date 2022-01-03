@@ -1,0 +1,38 @@
+{
+  "name": "teste-node-lighthouse",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon --watch 'src'",
+    "test": "jest",
+    "prod": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taciossbr/Teste-Node-LightHouse.git"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "interview"
+  ],
+  "author": "Tacio S. S. <contato@tacioss.dev>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/taciossbr/Teste-Node-LightHouse/issues"
+  },
+  "homepage": "https://github.com/taciossbr/Teste-Node-LightHouse#readme",
+  "devDependencies": {
+    "jest": "^27.4.5",
+    "nodemon": "^2.0.15",
+    "supertest": "^6.1.6"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "celebrate": "^15.0.0",
+    "express": "^4.17.2",
+    "knex": "^0.95.15",
+    "sqlite3": "^5.0.2"
+  }
+}
