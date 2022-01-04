@@ -62,15 +62,15 @@ class UsersController {
       })
     }
 
-    // const user = await this.#connection('users')
-    //     .select(['users.id', 'users.first_name', 'users.last_name', 'users.username', 'users.email', 'users.phone'])
-    //     .where({ id }).first()
+    const user = await this.#connection('users')
+        .select(['users.id', 'users.first_name', 'users.last_name', 'users.username', 'users.email', 'users.phone'])
+        .where({ id }).first()
 
-    // if (!user) {
-    //     return response.status(404).json({
-    //         'error': `User with id #${id} not found.`
-    //     })
-    // }
+    if (!user) {
+        return response.status(404).json({
+            'error': `User with id #${id} not found.`
+        })
+    }
 
     await this.#connection('users')
         .where({ id })

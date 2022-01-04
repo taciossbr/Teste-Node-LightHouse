@@ -182,4 +182,19 @@ describe('UsersControlller', () => {
       }
     )
   })
+  it('should return 404 when user did not exists', async () => {
+    const response = await request(app)
+      .put('/users/2')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .send({
+        last_name: "Henrique de Almeida"
+      })
+
+    expect(response.statusCode).toBe(404)
+    expect(response.body).toMatchObject(
+      {
+        error: 'User with id #2 not found.'
+      }
+    )
+  })
 })
