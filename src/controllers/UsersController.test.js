@@ -11,7 +11,7 @@ describe('UsersControlller', () => {
   beforeEach(async () => {
     connection = knex(knexSettings.test)
     await connection.migrate.latest()
-    app = createApp(connection)
+    app = createApp({dbConnection: connection})
   })
   afterEach(async () => {
     await connection.destroy()
