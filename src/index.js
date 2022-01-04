@@ -1,3 +1,6 @@
-const server = require("./server");
+const createApp = require("./app");
+const connection = require("./database/connection");
 
-server.listen(8080)
+const app = createApp(connection)
+
+app.listen(8080)
