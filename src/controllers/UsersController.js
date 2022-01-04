@@ -18,7 +18,7 @@ class UsersController {
       })
     }
 
-    if (!(this.validatePasswordSecurity(password))) {
+    if (!(this.#validatePasswordSecurity(password))) {
       return response.status(400).json({
         error: 'Invalid password field. Password need to have at least: '
               + 'a digit, a upper case letter, and a lower case letter'
@@ -52,7 +52,38 @@ class UsersController {
 
   }
 
-  validatePasswordSecurity = (password) => {
+  update = async (request, response) => {
+    const { id } = request.params
+    const idInToken = request.loggedUserId
+
+    if (idInToken !== parseInt(id)) {
+      return response.status(403).send({
+        error: 'You can only update your user.'
+      })
+    }
+
+    // const user = await this.#connection('users')
+    //     .select(['users.id', 'users.first_name', 'users.last_name', 'users.username', 'users.email', 'users.phone'])
+    //     .where({ id }).first()
+
+    // if (!user) {
+    //     return response.status(404).json({
+    //         'error': `User with id #${id} not found.`
+    //     })
+    // }
+
+    await this.#connection('users')
+        .where({ id })
+        .update(request.body)
+    
+    const userUpdated = await this.#connection('users')
+        .select(['users.id', 'users.first_name', 'users.last_name', 'users.username', 'users.email', 'users.phone'])
+        .where({ id }).first()
+
+    return response.json(userUpdated)
+  }
+
+  #validatePasswordSecurity = (password) => {
     
     const regexValidate = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/
     return regexValidate.test(password)

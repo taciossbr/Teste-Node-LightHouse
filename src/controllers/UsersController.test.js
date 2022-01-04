@@ -1,17 +1,32 @@
 const { default: knex } = require('knex');
 const request = require('supertest');
+const bcrypt = require('bcrypt')
 
 const knexSettings = require('../../knexfile');
 const createApp = require('../app');
+const jsonwebtoken = require('jsonwebtoken');
 
 let app, connection;
+
+const password = '1234abcD'
+const passwordHash = bcrypt.hashSync(password, 10)
+
+const secret = 'secret'
 
 describe('UsersControlller', () => {
 
   beforeEach(async () => {
     connection = knex(knexSettings.test)
     await connection.migrate.latest()
-    app = createApp({dbConnection: connection})
+    app = createApp({dbConnection: connection, jwtSecret: secret})
+    await connection('users').insert({
+      username: "lucas",
+      first_name: "Lucas",
+      last_name: "Almeida",
+      email: "lucas@exemplo.com",
+      phone: "1163786458",
+      password_hash: passwordHash
+    })
   })
   afterEach(async () => {
     await connection.destroy()
@@ -131,5 +146,40 @@ describe('UsersControlller', () => {
     })
 
 
+  })
+  it('should update user', async () => {
+    const response = await request(app)
+      .put('/users/1')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 1}, secret))
+      .send({
+        last_name: "Henrique de Almeida"
+      })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toMatchObject(
+      {
+        username: "lucas",
+        first_name: "Lucas",
+        last_name: "Henrique de Almeida",
+        email: "lucas@exemplo.com",
+        phone: "1163786458",
+        id: 1
+      }
+    )
+  })
+  it('should deny update user from other user', async () => {
+    const response = await request(app)
+      .put('/users/1')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .send({
+        last_name: "Henrique de Almeida"
+      })
+
+    expect(response.statusCode).toBe(403)
+    expect(response.body).toMatchObject(
+      {
+        error: 'You can only update your user.'
+      }
+    )
   })
 })
