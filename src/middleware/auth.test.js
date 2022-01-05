@@ -9,6 +9,10 @@ describe('loginRequired', () => {
   let nextFunction = jest.fn()
   let midd
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+  })
+
   beforeEach(() => {
     mockRequest = {
       headers: {},
@@ -55,17 +59,19 @@ describe('loginRequired', () => {
   it('should deny requests when expired jwt', async () => {
 
     mockRequest.headers = {
-      'authorization': 'Bearer ' + jsonwebtoken.sign({}, secret, { expiresIn: 1})
+      'authorization': 'Bearer ' + jsonwebtoken.sign({}, secret, { expiresIn: '3m'})
     }
 
-    setTimeout(async () => {
-      const response = await midd(mockRequest, mockResponse, nextFunction)
-      expect(response.body).toMatchObject({
-        error: 'Could not authenticate you'
-      })
+    jest.advanceTimersByTime(200000)
 
-      expect(nextFunction).not.toHaveBeenCalled()
-    }, 5)
+    const response = await midd(mockRequest, mockResponse, nextFunction)
+    expect(response.statusCode).toBe(401)
+    expect(response.body).toMatchObject({
+      error: 'Could not authenticate you'
+    })
+
+    expect(nextFunction).not.toHaveBeenCalled()
+
 
   })
   it('should deny requests when using no bearer token', async () => {
