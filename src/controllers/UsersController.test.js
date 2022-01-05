@@ -27,6 +27,14 @@ describe('UsersControlller', () => {
       phone: "1163786458",
       password_hash: passwordHash
     })
+    await connection('users').insert({
+      username: "tacio",
+      first_name: "Tacio",
+      last_name: "Santos",
+      email: "tacio@exemplo.com",
+      phone: "1163786458",
+      password_hash: passwordHash
+    })
   })
   afterEach(async () => {
     await connection.destroy()
@@ -43,7 +51,7 @@ describe('UsersControlller', () => {
         last_name: "S. S.",
         email: "tacim6@exemplo.com",
         password: "1234abcD",
-        phone: "1163786458",
+        phone: "11963786458",
         password_confirmation: "1234abcD"
       })
 
@@ -54,7 +62,7 @@ describe('UsersControlller', () => {
         first_name: "Tacio",
         last_name: "S. S.",
         email: "tacim6@exemplo.com",
-        phone: "1163786458",
+        phone: "11963786458",
         id: expect.any(Number)
       }
     )
@@ -68,7 +76,7 @@ describe('UsersControlller', () => {
         last_name: "S. S.",
         email: "tacim6@exemplo.com",
         password: "1234abc",
-        phone: "1163786458",
+        phone: "11963786458",
         password_confirmation: "1234abcD"
       })
 
@@ -89,7 +97,7 @@ describe('UsersControlller', () => {
           last_name: "S. S.",
           email: "tacim6@exemplo.com",
           password: password,
-          phone: "1163786458",
+          phone: "11963786458",
           password_confirmation: password
         })
   
@@ -118,7 +126,7 @@ describe('UsersControlller', () => {
           first_name: "Tacio",
           last_name: "S. S.",
           password: "1234abcD",
-          phone: "1163786458",
+          phone: "11963786458",
           password_confirmation: "1234abcD"
         })
       return response
@@ -184,8 +192,8 @@ describe('UsersControlller', () => {
   })
   it('should return 404 when user did not exists', async () => {
     const response = await request(app)
-      .put('/users/2')
-      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .put('/users/3')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 3}, secret))
       .send({
         last_name: "Henrique de Almeida"
       })
@@ -193,9 +201,49 @@ describe('UsersControlller', () => {
     expect(response.statusCode).toBe(404)
     expect(response.body).toMatchObject(
       {
-        error: 'User with id #2 not found.'
+        error: 'User with id #3 not found.'
       }
     )
+  })
+  it('should deny update with username conflict', async () => {
+    const response = await request(app)
+      .put('/users/2')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .send({
+        username: 'lucas'
+      })
+
+    expect(response.statusCode).toBe(403)
+    expect(response.body).toMatchObject(
+      {
+        error: 'There is already an user with this username or e-mail.'
+      }
+    )
+  })
+  it('should deny update with username conflict', async () => {
+    const response = await request(app)
+      .put('/users/2')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .send({
+        email: 'lucas@exemplo.com'
+      })
+
+    expect(response.statusCode).toBe(403)
+    expect(response.body).toMatchObject(
+      {
+        error: 'There is already an user with this username or e-mail.'
+      }
+    )
+  })
+  it('should allow override username and password', async () => {
+    const response = await request(app)
+      .put('/users/2')
+      .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      .send({
+        email: 'tacio@exemplo.com'
+      })
+
+    expect(response.statusCode).toBe(200)
   })
 
   describe('UserController List Pagination', () => {

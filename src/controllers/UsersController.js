@@ -9,9 +9,6 @@ class UsersController {
   create = async (request, response) => {
     const {username, first_name, last_name, email, phone, password, password_confirmation} = request.body
 
-    // TODO validate username
-    // TODO validate email
-
     if (password !== password_confirmation) {
       return response.status(400).json({
         error: 'Password confirmation don\'t match'
@@ -54,6 +51,7 @@ class UsersController {
 
   update = async (request, response) => {
     const { id } = request.params
+    const { username, email } = request.body
     const idInToken = request.loggedUserId
 
     if (idInToken !== parseInt(id)) {
@@ -70,6 +68,25 @@ class UsersController {
         return response.status(404).json({
             'error': `User with id #${id} not found.`
         })
+    }
+    if (username || email) {
+      const query = this.#connection('users')
+      if (username) {
+        query.where({username})
+      }
+      if (email) {
+        query.orWhere({email})
+      }
+      const userAlreadyinDatabase = await query
+        .whereNot({id})
+        .first()
+      
+      if (userAlreadyinDatabase) {
+        console.log(userAlreadyinDatabase)
+        return response.status(403).json({
+          error: 'There is already an user with this username or e-mail.'
+        })
+      }
     }
 
     await this.#connection('users')
