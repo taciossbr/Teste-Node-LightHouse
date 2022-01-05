@@ -22,12 +22,11 @@ class UsersController {
       })
     }
 
-    const userAlreadyinDatabase = await this.#connection('users')
-      .where({username})
-      .orWhere({email})
-      .first()
+    const userAlreadyInDatabase = await this.#getUserWithCredentialsConflict({
+      username, email
+    })
     
-    if (userAlreadyinDatabase) {
+    if (userAlreadyInDatabase) {
       return response.status(403).json({
         error: 'There is already an user with this username or e-mail.'
       })
@@ -69,24 +68,13 @@ class UsersController {
             'error': `User with id #${id} not found.`
         })
     }
-    if (username || email) {
-      const query = this.#connection('users')
-      if (username) {
-        query.where({username})
-      }
-      if (email) {
-        query.orWhere({email})
-      }
-      const userAlreadyinDatabase = await query
-        .whereNot({id})
-        .first()
-      
-      if (userAlreadyinDatabase) {
-        console.log(userAlreadyinDatabase)
-        return response.status(403).json({
-          error: 'There is already an user with this username or e-mail.'
-        })
-      }
+    const userAlreadyInDatabase = await this.#getUserWithCredentialsConflict({
+      username, email
+    })
+    if (userAlreadyInDatabase && userAlreadyInDatabase.id !== user.id){
+      return response.status(403).json({
+        error: 'There is already an user with this username or e-mail.'
+      })
     }
 
     await this.#connection('users')
@@ -125,6 +113,17 @@ class UsersController {
     
     const regexValidate = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/
     return regexValidate.test(password)
+  }
+
+  async #getUserWithCredentialsConflict({username, email}) {
+    const query = this.#connection('users')
+    if (username) {
+      query.where({username})
+    }
+    if (email) {
+      query.orWhere({email})
+    }
+    return await query.first()
   }
 
 }
