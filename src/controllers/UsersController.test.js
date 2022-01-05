@@ -197,4 +197,71 @@ describe('UsersControlller', () => {
       }
     )
   })
+
+  describe('UserController List Pagination', () => {
+    const users = [...Array(100).keys()].map(id => id + 1).map(id => ({
+      username: `user${id}`,
+      first_name: `User #${id}`,
+      last_name: "Random",
+      email: `user${id}@exemplo.com`,
+      phone: "1163786458",
+      password_hash: passwordHash
+    }))
+    beforeEach(async () => {
+      connection = knex(knexSettings.test)
+      await connection.migrate.latest()
+      app = createApp({dbConnection: connection, jwtSecret: secret})
+      await connection('users').insert(users)
+    })
+    afterEach(async () => {
+      await connection.destroy()
+    })
+    afterAll(async () => {
+      await connection.destroy()
+    })
+    it('should return the first 30 users in database', async () => {
+      const response = await request(app)
+        .get('/users/')
+        .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      
+      expect(response.statusCode).toBe(200)
+      expect(response.body.page).toBe(1)
+      expect(response.body.page_size).toBe(30)
+      expect(response.body.count).toBe(100)
+      expect(response.body.records?.length).toBe(30)
+    })
+    it('should return the last page of users in database', async () => {
+      const response = await request(app)
+        .get('/users/?page=4')
+        .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      
+      expect(response.statusCode).toBe(200)
+      expect(response.body.page).toBe(4)
+      expect(response.body.page_size).toBe(10)
+      expect(response.body.count).toBe(100)
+      expect(response.body.records?.length).toBe(10)
+    })
+    it('should accept an custom page size', async () => {
+      const response = await request(app)
+        .get('/users/?page_size=60')
+        .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      
+      expect(response.statusCode).toBe(200)
+      expect(response.body.page).toBe(1)
+      expect(response.body.page_size).toBe(60)
+      expect(response.body.count).toBe(100)
+      expect(response.body.records?.length).toBe(60)
+    })
+    it('should accept an custom page size at least 60', async () => {
+      const response = await request(app)
+        .get('/users/?page_size=61')
+        .set('Authorization', 'Bearer ' + jsonwebtoken.sign({id: 2}, secret))
+      
+      expect(response.statusCode).toBe(200)
+      expect(response.body.page).toBe(1)
+      expect(response.body.page_size).toBe(60)
+      expect(response.body.count).toBe(100)
+      expect(response.body.records?.length).toBe(60)
+    })
+  })
 })

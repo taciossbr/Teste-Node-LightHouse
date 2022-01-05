@@ -13,6 +13,7 @@ function createApp({dbConnection, jwtSecret}) {
   app.use(express.json())
   
   app.route('/users').post(usersController.create)
+  app.route('/users').get(loginRequired(JWT_SECRET), usersController.list)
   app.route('/users/:id').put(loginRequired(JWT_SECRET), usersController.update)
   app.route('/login').post(authController.login)
 

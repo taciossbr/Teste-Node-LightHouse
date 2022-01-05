@@ -83,6 +83,27 @@ class UsersController {
     return response.json(userUpdated)
   }
 
+  list = async (request, response) => {
+    const { page: pageStr, page_size: requestedPageSize } = request.query
+    const page = parseInt(pageStr) || 1
+    const pageSize = Math.min(parseInt(requestedPageSize) || 30, 60)
+
+    const offset = (page - 1) * pageSize
+
+    const users = await this.#connection('users')
+      .limit(pageSize)
+      .offset(offset)
+
+    const countUsers = await this.#connection('users').count('id as CNT').first()
+
+    return response.json({
+      page,
+      page_size: users.length,
+      count: countUsers.CNT,
+      records: users
+    })
+  }
+
   #validatePasswordSecurity = (password) => {
     
     const regexValidate = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/
