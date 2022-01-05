@@ -1,6 +1,6 @@
 const createApp = require("./app");
-const connection = require("./database/connection");
+const dbConnection = require("./database/connection");
 
-const app = createApp(connection)
+const app = createApp({dbConnection})
 
 app.listen(8080)
